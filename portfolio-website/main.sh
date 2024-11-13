@@ -11,8 +11,8 @@ IFS=$'\n\t'
 # Global variables
 KUBECTL_VERSION="1.27.4"
 KUBECTL_DATE="2023-08-16"
-FLASK_REPO="https://github.com/joozero/amazon-eks-flask.git"
-ECR_REPO_NAME="demo-flask-backend"
+#FLASK_REPO="https://github.com/joozero/amazon-eks-flask.git"
+ECR_REPO_NAME="portfolio-website"
 
 # Logging functions
 # These functions provide formatted log output with different colors and labels:
@@ -143,15 +143,12 @@ setup_docker() {
         log_info "Docker installed successfully"
     fi
     
-    # Build test image
-    cat > Dockerfile << EOF
-FROM nginx:latest
-RUN echo '<h1>test nginx web page</h1>' >> index.html
-RUN cp /index.html /usr/share/nginx/html
-EOF
-    
-    docker build -t test-image .
-    docker run -d -p 8080:80 --name test-nginx test-image
+    # Clone portfolio website repository
+    git clone https://github.com/rajnages/alb-ec2-project.git
+    cd alb-ec2-project/portfolio-website
+    # Build docker image
+    docker build -t portfolio-website .
+    docker run -d -p 8080:80 --name portfolio-website portfolio-website
 }
 
 # Setup ECR and push images
@@ -171,11 +168,11 @@ setup_ecr() {
         docker login --username AWS --password-stdin "${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
     
     # Clone and build Flask application
-    if [ ! -d "amazon-eks-flask" ]; then
-        git clone "${FLASK_REPO}"
+    if [ ! -d "alb-ec2-project" ]; then
+        git clone https://github.com/rajnages/alb-ec2-project.git
     fi
     
-    cd amazon-eks-flask
+    cd alb-ec2-project/portfolio-website
     docker build -t "${ECR_REPO_NAME}" .
     docker tag "${ECR_REPO_NAME}:latest" "${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO_NAME}:latest"
     docker push "${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO_NAME}:latest"
