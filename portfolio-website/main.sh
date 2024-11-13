@@ -145,7 +145,7 @@ setup_docker() {
     
     # Clone portfolio website repository
     git clone https://github.com/rajnages/alb-ec2-project.git
-    cd alb-ec2-project/portfolio-website
+    cd alb-ec2-project && cd portfolio-website
     # Build docker image
     docker build -t portfolio-website .
     docker run -d -p 8080:80 --name portfolio-website portfolio-website
